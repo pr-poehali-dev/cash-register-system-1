@@ -194,13 +194,7 @@ export default function Index() {
                     <Icon name="Plus" size={15} />
                     Создать товар
                   </button>
-                  <button
-                    onClick={() => { if (confirm('Удалить все товары из каталога?')) setProducts([]); }}
-                    className="shrink-0 flex items-center gap-1.5 px-3 py-2 rounded-lg border border-destructive/40 text-destructive text-sm font-semibold hover:bg-destructive hover:text-white active:scale-[0.98] transition-all"
-                  >
-                    <Icon name="Trash2" size={15} />
-                    Удалить все
-                  </button>
+
                   <div className="flex-1 flex items-center gap-2 px-3 py-2 rounded-md border border-border bg-input focus-within:border-primary/50 transition-colors">
                     <Icon name="Search" size={14} className="text-muted-foreground shrink-0" />
                     <input
@@ -282,7 +276,7 @@ export default function Index() {
         )}
 
         {tab === 'settings' && (
-          <SettingsPanel settings={settings} onSave={setSettings} />
+          <SettingsPanel settings={settings} onSave={setSettings} onClearProducts={() => setProducts([])} />
         )}
       </div>
 

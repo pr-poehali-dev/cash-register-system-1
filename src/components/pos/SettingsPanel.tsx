@@ -12,9 +12,10 @@ interface Settings {
 interface SettingsPanelProps {
   settings: Settings;
   onSave: (settings: Settings) => void;
+  onClearProducts: () => void;
 }
 
-export default function SettingsPanel({ settings, onSave }: SettingsPanelProps) {
+export default function SettingsPanel({ settings, onSave, onClearProducts }: SettingsPanelProps) {
   const [form, setForm] = useState<Settings>(settings);
   const [saved, setSaved] = useState(false);
 
@@ -84,6 +85,24 @@ export default function SettingsPanel({ settings, onSave }: SettingsPanelProps) 
               onChange={e => setForm({ ...form, defaultDiscount: Number(e.target.value) })}
               className="w-full bg-input border border-border rounded-md px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-primary"
             />
+          </div>
+        </div>
+
+        {/* Danger zone */}
+        <div className="bg-card border border-destructive/30 rounded-lg p-4 space-y-3">
+          <div className="text-xs font-medium text-destructive uppercase tracking-wide">Опасная зона</div>
+          <div className="flex items-center justify-between">
+            <div>
+              <div className="text-sm font-medium">Удалить все товары</div>
+              <div className="text-xs text-muted-foreground">Весь каталог будет очищен без возможности восстановления</div>
+            </div>
+            <button
+              onClick={() => { if (confirm('Удалить все товары из каталога?')) onClearProducts(); }}
+              className="shrink-0 flex items-center gap-1.5 px-3 py-2 rounded-lg border border-destructive/40 text-destructive text-sm font-semibold hover:bg-destructive hover:text-white active:scale-[0.98] transition-all"
+            >
+              <Icon name="Trash2" size={14} />
+              Удалить все
+            </button>
           </div>
         </div>
 
