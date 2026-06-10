@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Receipt } from '@/data/products';
 import Icon from '@/components/ui/icon';
 
@@ -7,6 +8,59 @@ interface ReceiptModalProps {
 }
 
 export default function ReceiptModal({ receipt, onClose }: ReceiptModalProps) {
+  const [btStatus, setBtStatus] = useState<'idle' | 'connecting' | 'printing' | 'done' | 'error'>('idle');
+
+  async function handleBluetoothPrint() {
+    if (!navigator.bluetooth) {
+      setBtStatus('error');
+      setTimeout(() => setBtStatus('idle'), 3000);
+      return;
+    }
+    try {
+      setBtStatus('connecting');
+      const device = await navigator.bluetooth.requestDevice({
+        filters: [{ services: ['000018f0-0000-1000-8000-00805f9b34fb'] }],
+        optionalServices: ['000018f0-0000-1000-8000-00805f9b34fb'],
+      });
+      const server = await device.gatt!.connect();
+      const service = await server.getPrimaryService('000018f0-0000-1000-8000-00805f9b34fb');
+      const characteristic = await service.getCharacteristic('00002af1-0000-1000-8000-00805f9b34fb');
+
+      setBtStatus('printing');
+
+      const lines = [
+        '\x1B\x40',
+        '\x1B\x61\x01',
+        '\x1B\x21\x10МОЙ МАГАЗИН\x1B\x21\x00\n',
+        `${receipt.date.toLocaleDateString('ru-RU')} ${receipt.date.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' })}\n`,
+        `Кассир: ${receipt.cashier}\n`,
+        '--------------------------------\n',
+        ...receipt.items.map(i => `${i.name}\n  ${i.price.toFixed(2)} x ${i.quantity} = ${(i.price * i.quantity * (1 - i.discount / 100)).toFixed(2)} RUB\n`),
+        '--------------------------------\n',
+        `ИТОГО: ${receipt.total.toFixed(2)} RUB\n`,
+        `Оплата: ${receipt.paymentMethod === 'cash' ? 'Наличные' : receipt.paymentMethod === 'sbp' ? 'СБП' : receipt.paymentMethod === 'sber' ? 'Сбер' : 'Карта'}\n`,
+        '--------------------------------\n',
+        '\x1B\x61\x01Спасибо за покупку!\n\n\n',
+        '\x1D\x56\x41\x10',
+      ];
+
+      const text = lines.join('');
+      const encoder = new TextEncoder();
+      const data = encoder.encode(text);
+      const chunkSize = 20;
+      for (let i = 0; i < data.length; i += chunkSize) {
+        await characteristic.writeValue(data.slice(i, i + chunkSize));
+      }
+
+      device.gatt!.disconnect();
+      setBtStatus('done');
+      setTimeout(() => setBtStatus('idle'), 3000);
+    } catch {
+      setBtStatus('error');
+      setTimeout(() => setBtStatus('idle'), 3000);
+    }
+  }
+
   const dateStr = receipt.date.toLocaleDateString('ru-RU', {
     day: '2-digit', month: '2-digit', year: 'numeric',
   });
@@ -89,7 +143,23 @@ export default function ReceiptModal({ receipt, onClose }: ReceiptModalProps) {
           </div>
         </div>
 
-        <div className="px-4 pb-4">
+        <div className="px-4 pb-4 space-y-2">
+          <button
+            onClick={handleBluetoothPrint}
+            disabled={btStatus === 'connecting' || btStatus === 'printing'}
+            className={`w-full py-2.5 rounded-lg text-sm font-semibold transition-all flex items-center justify-center gap-2 border ${
+              btStatus === 'done'
+                ? 'border-primary/40 bg-primary/10 text-primary'
+                : btStatus === 'error'
+                ? 'border-destructive/40 bg-destructive/10 text-destructive'
+                : btStatus === 'connecting' || btStatus === 'printing'
+                ? 'border-border bg-muted text-muted-foreground cursor-wait'
+                : 'border-border text-foreground hover:border-primary hover:text-primary'
+            }`}
+          >
+            <Icon name={btStatus === 'done' ? 'Check' : btStatus === 'error' ? 'AlertCircle' : 'Bluetooth'} size={14} />
+            {btStatus === 'connecting' ? 'Подключение...' : btStatus === 'printing' ? 'Печать...' : btStatus === 'done' ? 'Чек напечатан!' : btStatus === 'error' ? 'Ошибка печати' : 'Печать по Bluetooth'}
+          </button>
           <button
             onClick={onClose}
             className="w-full py-2.5 bg-primary text-primary-foreground rounded-lg text-sm font-semibold hover:bg-primary/90 transition-all flex items-center justify-center gap-2"
