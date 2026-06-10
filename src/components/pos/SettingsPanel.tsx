@@ -13,9 +13,11 @@ interface SettingsPanelProps {
   settings: Settings;
   onSave: (settings: Settings) => void;
   onClearProducts: () => void;
+  shiftOpen: boolean;
+  onToggleShift: () => void;
 }
 
-export default function SettingsPanel({ settings, onSave, onClearProducts }: SettingsPanelProps) {
+export default function SettingsPanel({ settings, onSave, onClearProducts, shiftOpen, onToggleShift }: SettingsPanelProps) {
   const [form, setForm] = useState<Settings>(settings);
   const [saved, setSaved] = useState(false);
 
@@ -85,6 +87,28 @@ export default function SettingsPanel({ settings, onSave, onClearProducts }: Set
               onChange={e => setForm({ ...form, defaultDiscount: Number(e.target.value) })}
               className="w-full bg-input border border-border rounded-md px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-primary"
             />
+          </div>
+        </div>
+
+        {/* Shift */}
+        <div className="bg-card border border-border rounded-lg p-4 space-y-3">
+          <div className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Смена</div>
+          <div className="flex items-center justify-between">
+            <div>
+              <div className="text-sm font-medium">{shiftOpen ? 'Смена открыта' : 'Смена закрыта'}</div>
+              <div className="text-xs text-muted-foreground">{shiftOpen ? 'Касса активна, продажи разрешены' : 'Касса заблокирована, продажи недоступны'}</div>
+            </div>
+            <button
+              onClick={() => { if (!shiftOpen || confirm('Закрыть смену?')) onToggleShift(); }}
+              className={`shrink-0 flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-semibold transition-all active:scale-[0.98] ${
+                shiftOpen
+                  ? 'border border-amber-400/50 text-amber-600 hover:bg-amber-500 hover:text-white'
+                  : 'bg-primary text-primary-foreground hover:bg-primary/90'
+              }`}
+            >
+              <Icon name={shiftOpen ? 'LogOut' : 'LogIn'} size={14} />
+              {shiftOpen ? 'Закрыть смену' : 'Открыть смену'}
+            </button>
           </div>
         </div>
 

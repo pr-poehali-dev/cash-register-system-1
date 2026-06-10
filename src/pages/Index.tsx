@@ -35,6 +35,7 @@ export default function Index() {
   const callTimerRef = useRef<ReturnType<typeof setTimeout>>();
   const [products, setProducts] = useState<Product[]>(INITIAL_PRODUCTS);
   const [showCreateProduct, setShowCreateProduct] = useState(false);
+  const [shiftOpen, setShiftOpen] = useState(true);
 
   const categories = ['Все', ...Array.from(new Set(products.map(p => p.category)))];
 
@@ -137,9 +138,9 @@ export default function Index() {
           <div className="text-xs text-muted-foreground font-mono-ibm hidden sm:block">
             {new Date().toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit', year: 'numeric' })}
           </div>
-          <div className="flex items-center gap-1 text-xs cash-green font-medium hidden sm:flex">
-            <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
-            Смена открыта
+          <div className={`flex items-center gap-1 text-xs font-medium hidden sm:flex ${shiftOpen ? 'cash-green' : 'text-muted-foreground'}`}>
+            <div className={`w-1.5 h-1.5 rounded-full ${shiftOpen ? 'bg-green-500 animate-pulse' : 'bg-muted-foreground'}`} />
+            {shiftOpen ? 'Смена открыта' : 'Смена закрыта'}
           </div>
           <button
             onClick={handleCallStaff}
@@ -276,7 +277,7 @@ export default function Index() {
         )}
 
         {tab === 'settings' && (
-          <SettingsPanel settings={settings} onSave={setSettings} onClearProducts={() => setProducts([])} />
+          <SettingsPanel settings={settings} onSave={setSettings} onClearProducts={() => setProducts([])} shiftOpen={shiftOpen} onToggleShift={() => setShiftOpen(p => !p)} />
         )}
       </div>
 
