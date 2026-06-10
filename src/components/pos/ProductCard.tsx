@@ -15,7 +15,7 @@ export default function ProductCard({ product, onAdd }: ProductCardProps) {
       onClick={() => !isOutOfStock && onAdd(product)}
       disabled={isOutOfStock}
       className={`
-        group relative w-full text-left p-3 rounded-md border transition-all duration-150
+        group relative w-full text-left p-3 border transition-all duration-150
         ${isOutOfStock
           ? 'border-border bg-muted/30 opacity-40 cursor-not-allowed'
           : 'border-border bg-card hover:border-primary/50 hover:bg-accent cursor-pointer active:scale-[0.98]'
@@ -40,8 +40,8 @@ export default function ProductCard({ product, onAdd }: ProductCardProps) {
         </div>
       </div>
       {!isOutOfStock && (
-        <div className="absolute inset-0 rounded-md flex items-center justify-center bg-primary/10 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
-          <div className="bg-primary rounded-full p-1">
+        <div className="absolute inset-0 flex items-center justify-center bg-primary/10 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
+          <div className="bg-primary p-1">
             <Icon name="Plus" size={16} className="text-primary-foreground" />
           </div>
         </div>
