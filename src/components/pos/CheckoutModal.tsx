@@ -10,14 +10,14 @@ interface CheckoutModalProps {
 }
 
 export default function CheckoutModal({ items, total, onConfirm, onClose }: CheckoutModalProps) {
-  const [method, setMethod] = useState<'cash' | 'card'>('card');
+  const [method, setMethod] = useState<'cash' | 'card' | 'sbp'>('card');
   const [cashInput, setCashInput] = useState('');
 
   const subtotal = items.reduce((sum, i) => sum + i.price * i.quantity, 0);
   const discount = subtotal - total;
   const cashReceived = parseFloat(cashInput) || 0;
   const change = cashReceived - total;
-  const canPay = method === 'card' || cashReceived >= total;
+  const canPay = method === 'card' || method === 'sbp' || cashReceived >= total;
 
   function handleQuickCash(amount: number) {
     setCashInput(String(amount));
@@ -70,7 +70,7 @@ export default function CheckoutModal({ items, total, onConfirm, onClose }: Chec
           </div>
 
           {/* Payment method */}
-          <div className="grid grid-cols-2 gap-2">
+          <div className="grid grid-cols-3 gap-2">
             <button
               onClick={() => setMethod('card')}
               className={`flex items-center justify-center gap-2 py-3 rounded-lg border font-medium text-sm transition-all ${
@@ -92,6 +92,17 @@ export default function CheckoutModal({ items, total, onConfirm, onClose }: Chec
             >
               <Icon name="Banknote" size={16} />
               Наличные
+            </button>
+            <button
+              onClick={() => setMethod('sbp')}
+              className={`flex flex-col items-center justify-center gap-1 py-3 rounded-lg border font-medium text-sm transition-all ${
+                method === 'sbp'
+                  ? 'border-[#1DB954] bg-[#1DB954]/10 text-[#1DB954]'
+                  : 'border-border text-muted-foreground hover:border-muted-foreground'
+              }`}
+            >
+              <span className="text-lg leading-none">⚡</span>
+              <span>СБП</span>
             </button>
           </div>
 
@@ -146,7 +157,7 @@ export default function CheckoutModal({ items, total, onConfirm, onClose }: Chec
             }`}
           >
             <Icon name="Check" size={16} />
-            {method === 'card' ? 'Подтвердить оплату картой' : 'Принять оплату'}
+            {method === 'card' ? 'Подтвердить оплату картой' : method === 'sbp' ? 'Подтвердить оплату СБП' : 'Принять оплату'}
           </button>
         </div>
       </div>
