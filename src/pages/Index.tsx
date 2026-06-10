@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useRef } from 'react';
 import { PRODUCTS, CATEGORIES, Product, CartItem, Receipt } from '@/data/products';
 import ProductCard from '@/components/pos/ProductCard';
 import Cart from '@/components/pos/Cart';
@@ -30,6 +30,34 @@ export default function Index() {
   const [lastReceipt, setLastReceipt] = useState<Receipt | null>(null);
   const [receipts, setReceipts] = useState<Receipt[]>([]);
   const [settings, setSettings] = useState(DEFAULT_SETTINGS);
+  const [callActive, setCallActive] = useState(false);
+  const callTimerRef = useRef<ReturnType<typeof setTimeout>>();
+
+  function playCallSound() {
+    const ctx = new (window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext)();
+    const notes = [523.25, 659.25, 783.99, 1046.5];
+    notes.forEach((freq, i) => {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.type = 'sine';
+      osc.frequency.value = freq;
+      gain.gain.setValueAtTime(0, ctx.currentTime + i * 0.12);
+      gain.gain.linearRampToValueAtTime(0.35, ctx.currentTime + i * 0.12 + 0.03);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + i * 0.12 + 0.22);
+      osc.start(ctx.currentTime + i * 0.12);
+      osc.stop(ctx.currentTime + i * 0.12 + 0.25);
+    });
+  }
+
+  function handleCallStaff() {
+    if (callActive) return;
+    playCallSound();
+    setCallActive(true);
+    clearTimeout(callTimerRef.current);
+    callTimerRef.current = setTimeout(() => setCallActive(false), 4000);
+  }
 
   const addToCart = useCallback((product: Product) => {
     setCart(prev => {
@@ -97,13 +125,24 @@ export default function Index() {
           </div>
         </div>
         <div className="flex items-center gap-3">
-          <div className="text-xs text-muted-foreground font-mono-ibm">
+          <div className="text-xs text-muted-foreground font-mono-ibm hidden sm:block">
             {new Date().toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit', year: 'numeric' })}
           </div>
-          <div className="flex items-center gap-1 text-xs cash-green font-medium">
+          <div className="flex items-center gap-1 text-xs cash-green font-medium hidden sm:flex">
             <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
             Смена открыта
           </div>
+          <button
+            onClick={handleCallStaff}
+            className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-semibold border transition-all duration-200 ${
+              callActive
+                ? 'bg-amber-500 border-amber-400 text-white animate-pulse shadow-lg shadow-amber-500/30'
+                : 'bg-amber-50 border-amber-300 text-amber-700 hover:bg-amber-100 hover:border-amber-400'
+            }`}
+          >
+            <Icon name="Bell" size={15} />
+            {callActive ? 'Вызов отправлен...' : 'Вызов сотрудника'}
+          </button>
         </div>
       </header>
 
