@@ -36,8 +36,9 @@ export default function Index() {
   const [products, setProducts] = useState<Product[]>(INITIAL_PRODUCTS);
   const [showCreateProduct, setShowCreateProduct] = useState(false);
   const [shiftOpen, setShiftOpen] = useState(true);
+  const [extraCategories, setExtraCategories] = useState<string[]>([]);
 
-  const categories = ['Все', ...Array.from(new Set(products.map(p => p.category)))];
+  const categories = ['Все', ...Array.from(new Set([...products.map(p => p.category), ...extraCategories]))];
 
   function handleAddProduct(product: Product) {
     setProducts(prev => [...prev, product]);
@@ -277,7 +278,16 @@ export default function Index() {
         )}
 
         {tab === 'settings' && (
-          <SettingsPanel settings={settings} onSave={setSettings} onClearProducts={() => setProducts([])} shiftOpen={shiftOpen} onToggleShift={() => setShiftOpen(p => !p)} />
+          <SettingsPanel
+            settings={settings}
+            onSave={setSettings}
+            onClearProducts={() => setProducts([])}
+            shiftOpen={shiftOpen}
+            onToggleShift={() => setShiftOpen(p => !p)}
+            extraCategories={extraCategories}
+            onAddCategory={name => setExtraCategories(prev => [...prev, name])}
+            onDeleteCategory={name => setExtraCategories(prev => prev.filter(c => c !== name))}
+          />
         )}
       </div>
 

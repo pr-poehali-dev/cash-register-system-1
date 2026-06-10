@@ -15,11 +15,15 @@ interface SettingsPanelProps {
   onClearProducts: () => void;
   shiftOpen: boolean;
   onToggleShift: () => void;
+  extraCategories: string[];
+  onAddCategory: (name: string) => void;
+  onDeleteCategory: (name: string) => void;
 }
 
-export default function SettingsPanel({ settings, onSave, onClearProducts, shiftOpen, onToggleShift }: SettingsPanelProps) {
+export default function SettingsPanel({ settings, onSave, onClearProducts, shiftOpen, onToggleShift, extraCategories, onAddCategory, onDeleteCategory }: SettingsPanelProps) {
   const [form, setForm] = useState<Settings>(settings);
   const [saved, setSaved] = useState(false);
+  const [newCategory, setNewCategory] = useState('');
 
   function handleSave() {
     onSave(form);
@@ -88,6 +92,39 @@ export default function SettingsPanel({ settings, onSave, onClearProducts, shift
               className="w-full bg-input border border-border rounded-md px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-primary"
             />
           </div>
+        </div>
+
+        {/* Categories */}
+        <div className="bg-card border border-border rounded-lg p-4 space-y-3">
+          <div className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Категории товаров</div>
+          <div className="flex gap-2">
+            <input
+              value={newCategory}
+              onChange={e => setNewCategory(e.target.value)}
+              onKeyDown={e => { if (e.key === 'Enter' && newCategory.trim()) { onAddCategory(newCategory.trim()); setNewCategory(''); } }}
+              placeholder="Название категории..."
+              className="flex-1 bg-input border border-border rounded-lg px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary"
+            />
+            <button
+              onClick={() => { if (newCategory.trim()) { onAddCategory(newCategory.trim()); setNewCategory(''); } }}
+              className="shrink-0 flex items-center gap-1.5 px-3 py-2 rounded-lg bg-primary text-primary-foreground text-sm font-semibold hover:bg-primary/90 active:scale-[0.98] transition-all"
+            >
+              <Icon name="Plus" size={14} />
+              Создать
+            </button>
+          </div>
+          {extraCategories.length > 0 && (
+            <div className="flex flex-wrap gap-2">
+              {extraCategories.map(cat => (
+                <div key={cat} className="flex items-center gap-1 px-2.5 py-1 rounded-full bg-secondary text-sm">
+                  <span>{cat}</span>
+                  <button onClick={() => onDeleteCategory(cat)} className="text-muted-foreground hover:text-destructive transition-colors ml-0.5">
+                    <Icon name="X" size={12} />
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
 
         {/* Shift */}
