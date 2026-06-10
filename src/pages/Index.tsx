@@ -1,5 +1,5 @@
 import { useState, useCallback, useRef } from 'react';
-import { PRODUCTS, CATEGORIES, Product, CartItem, Receipt } from '@/data/products';
+import { PRODUCTS as INITIAL_PRODUCTS, Product, CartItem, Receipt } from '@/data/products';
 import ProductCard from '@/components/pos/ProductCard';
 import Cart from '@/components/pos/Cart';
 import CheckoutModal from '@/components/pos/CheckoutModal';
@@ -7,6 +7,7 @@ import ReceiptModal from '@/components/pos/ReceiptModal';
 import SalesHistory from '@/components/pos/SalesHistory';
 import SettingsPanel from '@/components/pos/SettingsPanel';
 import BarcodeScanner from '@/components/pos/BarcodeScanner';
+import CreateProductModal from '@/components/pos/CreateProductModal';
 import Icon from '@/components/ui/icon';
 
 type Tab = 'pos' | 'history' | 'settings';
@@ -32,6 +33,14 @@ export default function Index() {
   const [settings, setSettings] = useState(DEFAULT_SETTINGS);
   const [callActive, setCallActive] = useState(false);
   const callTimerRef = useRef<ReturnType<typeof setTimeout>>();
+  const [products, setProducts] = useState<Product[]>(INITIAL_PRODUCTS);
+  const [showCreateProduct, setShowCreateProduct] = useState(false);
+
+  const categories = ['Все', ...Array.from(new Set(products.map(p => p.category)))];
+
+  function handleAddProduct(product: Product) {
+    setProducts(prev => [...prev, product]);
+  }
 
   function playCallSound() {
     const ctx = new (window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext)();
@@ -97,7 +106,7 @@ export default function Index() {
     setShowCheckout(false);
   }
 
-  const filteredProducts = PRODUCTS.filter(p => {
+  const filteredProducts = products.filter(p => {
     const matchCat = category === 'Все' || p.category === category;
     const matchSearch = !searchQuery || p.name.toLowerCase().includes(searchQuery.toLowerCase()) || p.barcode.includes(searchQuery);
     return matchCat && matchSearch;
@@ -177,8 +186,15 @@ export default function Index() {
             <div className="flex-1 flex flex-col border-r border-border overflow-hidden">
               {/* Search + Barcode row */}
               <div className="p-3 border-b border-border space-y-2 shrink-0">
-                <div className="grid grid-cols-2 gap-2">
-                  <div className="flex items-center gap-2 px-3 py-2 rounded-md border border-border bg-input focus-within:border-primary/50 transition-colors">
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => setShowCreateProduct(true)}
+                    className="shrink-0 flex items-center gap-1.5 px-3 py-2 rounded-lg bg-primary text-primary-foreground text-sm font-semibold hover:bg-primary/90 active:scale-[0.98] transition-all"
+                  >
+                    <Icon name="Plus" size={15} />
+                    Создать товар
+                  </button>
+                  <div className="flex-1 flex items-center gap-2 px-3 py-2 rounded-md border border-border bg-input focus-within:border-primary/50 transition-colors">
                     <Icon name="Search" size={14} className="text-muted-foreground shrink-0" />
                     <input
                       value={searchQuery}
@@ -192,11 +208,13 @@ export default function Index() {
                       </button>
                     )}
                   </div>
-                  <BarcodeScanner products={PRODUCTS} onFound={addToCart} />
+                  <div className="w-48 shrink-0">
+                    <BarcodeScanner products={products} onFound={addToCart} />
+                  </div>
                 </div>
                 {/* Category filter */}
                 <div className="flex gap-1.5 overflow-x-auto pb-0.5">
-                  {CATEGORIES.map(cat => (
+                  {categories.map(cat => (
                     <button
                       key={cat}
                       onClick={() => setCategory(cat)}
@@ -234,7 +252,7 @@ export default function Index() {
               <div className="px-3 py-2 border-t border-border flex items-center justify-between text-xs text-muted-foreground shrink-0">
                 <span>{filteredProducts.length} товаров</span>
                 <span className="font-mono-ibm">
-                  {PRODUCTS.reduce((s, p) => s + p.stock, 0)} ед. на складе
+                  {products.reduce((s, p) => s + p.stock, 0)} ед. на складе
                 </span>
               </div>
             </div>
@@ -262,6 +280,13 @@ export default function Index() {
       </div>
 
       {/* Modals */}
+      {showCreateProduct && (
+        <CreateProductModal
+          onSave={handleAddProduct}
+          onClose={() => setShowCreateProduct(false)}
+        />
+      )}
+
       {showCheckout && (
         <CheckoutModal
           items={cart}
