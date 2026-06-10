@@ -145,22 +145,6 @@ export default function ReceiptModal({ receipt, onClose }: ReceiptModalProps) {
 
         <div className="px-4 pb-4 space-y-2">
           <button
-            onClick={handleBluetoothPrint}
-            disabled={btStatus === 'connecting' || btStatus === 'printing'}
-            className={`w-full py-2.5 rounded-lg text-sm font-semibold transition-all flex items-center justify-center gap-2 border ${
-              btStatus === 'done'
-                ? 'border-primary/40 bg-primary/10 text-primary'
-                : btStatus === 'error'
-                ? 'border-destructive/40 bg-destructive/10 text-destructive'
-                : btStatus === 'connecting' || btStatus === 'printing'
-                ? 'border-border bg-muted text-muted-foreground cursor-wait'
-                : 'border-border text-foreground hover:border-primary hover:text-primary'
-            }`}
-          >
-            <Icon name={btStatus === 'done' ? 'Check' : btStatus === 'error' ? 'AlertCircle' : 'Bluetooth'} size={14} />
-            {btStatus === 'connecting' ? 'Подключение...' : btStatus === 'printing' ? 'Печать...' : btStatus === 'done' ? 'Чек напечатан!' : btStatus === 'error' ? 'Ошибка печати' : 'Печать по Bluetooth'}
-          </button>
-          <button
             onClick={onClose}
             className="w-full py-2.5 bg-primary text-primary-foreground rounded-lg text-sm font-semibold hover:bg-primary/90 transition-all flex items-center justify-center gap-2"
           >
